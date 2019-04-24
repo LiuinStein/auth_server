@@ -22,12 +22,9 @@ public class JwtsUtils {
     private static String x5cCertificate;
 
     public static void init() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-        // for linux
-//        String pkcs8Path = "/root/registry/ssl/hub.c.pkcs8";
-//        String certPath = "/root/registry/ssl/hub.c.der";
-        // for windows
-        String pkcs8Path = "F:\\Desktop\\registry\\ssl\\hub.c.pkcs8";
-        String certPath = "F:\\Desktop\\registry\\ssl\\hub.c.der";
+        // get public & private key
+        String pkcs8Path = System.getenv("PKCS8_PATH");
+        String certPath = System.getenv("CERT_PATH");
         // get Https SSL RSA private key
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(getByteArrayFromFile(pkcs8Path));

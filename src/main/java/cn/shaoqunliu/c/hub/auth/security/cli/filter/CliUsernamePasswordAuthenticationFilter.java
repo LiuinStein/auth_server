@@ -1,8 +1,9 @@
 package cn.shaoqunliu.c.hub.auth.security.cli.filter;
 
+import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationToken;
+import cn.shaoqunliu.c.hub.auth.security.cli.Scope;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -36,9 +37,8 @@ public class CliUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
             username = tokens[0];
             password = tokens[1];
         }
-        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-                username, password);
-        setDetails(request, authRequest);
+        CliAuthenticationToken authRequest = new CliAuthenticationToken(
+                username, password, new Scope(request.getParameter("scope")));
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 

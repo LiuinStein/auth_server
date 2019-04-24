@@ -12,6 +12,6 @@ public class CliAuthenticationFailureHandler implements AuthenticationFailureHan
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().print("{\"details\":\"incorrect username or password\"}");
+        response.getWriter().print("{\"details\":\"UNAUTHORIZED\"}");
     }
 }

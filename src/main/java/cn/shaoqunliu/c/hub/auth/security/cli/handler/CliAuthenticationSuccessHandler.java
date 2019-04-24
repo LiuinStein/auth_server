@@ -1,5 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.security.cli.handler;
 
+import cn.shaoqunliu.c.hub.auth.po.DockerAccessDetails;
+import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationToken;
 import cn.shaoqunliu.c.hub.auth.security.common.JwtsUtils;
 import cn.shaoqunliu.c.hub.auth.vo.JwtsAuthenticationResult;
 import com.alibaba.fastjson.JSON;
@@ -17,8 +19,14 @@ public class CliAuthenticationSuccessHandler implements AuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_OK);
+        List<DockerAccessDetails> access = new ArrayList<>();
+        if (authentication instanceof CliAuthenticationToken) {
+            access.add(new DockerAccessDetails(
+                    ((CliAuthenticationToken) authentication).getRequiredScope())
+            );
+        }
         String token = JwtsUtils.getBuilder()
-                .claim("access", new ArrayList<>())
+                .claim("access", access)
                 .setSubject(authentication.getName())
                 .compact();
         JwtsAuthenticationResult result = new JwtsAuthenticationResult();
