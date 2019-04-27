@@ -1,5 +1,6 @@
 package cn.shaoqunliu.c.hub.auth.security.cli;
 
+import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 public class CliAuthenticationToken extends AbstractAuthenticationToken {

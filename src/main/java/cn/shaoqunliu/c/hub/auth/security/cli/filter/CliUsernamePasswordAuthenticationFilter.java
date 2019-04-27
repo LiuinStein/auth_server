@@ -1,7 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.security.cli.filter;
 
 import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationToken;
-import cn.shaoqunliu.c.hub.auth.security.cli.Scope;
+import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;

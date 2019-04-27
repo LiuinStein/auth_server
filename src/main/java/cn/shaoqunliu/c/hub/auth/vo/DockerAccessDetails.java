@@ -1,6 +1,6 @@
-package cn.shaoqunliu.c.hub.auth.po;
+package cn.shaoqunliu.c.hub.auth.vo;
 
-import cn.shaoqunliu.c.hub.auth.security.cli.Scope;
+import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ public class DockerAccessDetails {
         type = "repository";
         name = scope.getRepository();
         actions = new ArrayList<>();
-        setActions(scope.getAction());
+        setActions(scope.getAction().toString());
     }
 
     public String getType() {

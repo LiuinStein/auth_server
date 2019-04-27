@@ -14,39 +14,30 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 public class MultiHttpSecurityConfig {
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // universally password encoder
+        // do not put it into any sub-configuration-class within this class
+        // otherwise it will cause circled dependencies problems
+        return new BCryptPasswordEncoder(11);
+    }
+
     @Configuration
     @Order(1)
     public static class DockerRegistryAuthSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-        private final UserDetailsService dockerUserDetailsService;
         private final AuthenticationProvider cliAuthenticationProvider;
 
         @Autowired
-        public DockerRegistryAuthSecurityConfiguration(UserDetailsService dockerUserDetailsService, AuthenticationProvider cliAuthenticationProvider) {
-            this.dockerUserDetailsService = dockerUserDetailsService;
+        public DockerRegistryAuthSecurityConfiguration(AuthenticationProvider cliAuthenticationProvider) {
             this.cliAuthenticationProvider = cliAuthenticationProvider;
-        }
-
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-            return new PasswordEncoder() {
-                @Override
-                public String encode(CharSequence charSequence) {
-                    return charSequence.toString();
-                }
-
-                @Override
-                public boolean matches(CharSequence charSequence, String s) {
-                    return s.equals(charSequence.toString());
-                }
-            };
         }
 
         @Override
@@ -68,8 +59,7 @@ public class MultiHttpSecurityConfig {
                                     authenticationManager(),
                                     "/v1/auth/token",
                                     new CliAuthenticationSuccessHandler(), new CliAuthenticationFailureHandler()),
-                            UsernamePasswordAuthenticationFilter.class)
-                    .userDetailsService(dockerUserDetailsService);
+                            UsernamePasswordAuthenticationFilter.class);
         }
     }
 

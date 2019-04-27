@@ -1,6 +1,6 @@
 package cn.shaoqunliu.c.hub.auth.security.cli.handler;
 
-import cn.shaoqunliu.c.hub.auth.po.DockerAccessDetails;
+import cn.shaoqunliu.c.hub.auth.vo.DockerAccessDetails;
 import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationToken;
 import cn.shaoqunliu.c.hub.auth.security.common.JwtsUtils;
 import cn.shaoqunliu.c.hub.auth.vo.JwtsAuthenticationResult;

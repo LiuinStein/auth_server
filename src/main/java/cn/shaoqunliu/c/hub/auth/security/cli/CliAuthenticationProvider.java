@@ -1,20 +1,44 @@
 package cn.shaoqunliu.c.hub.auth.security.cli;
 
+import cn.shaoqunliu.c.hub.auth.po.DockerAuth;
+import cn.shaoqunliu.c.hub.auth.service.DockerUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CliAuthenticationProvider implements AuthenticationProvider {
+
+    private final DockerUserDetailsService dockerUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public CliAuthenticationProvider(DockerUserDetailsService dockerUserDetailsService, PasswordEncoder passwordEncoder) {
+        this.dockerUserDetailsService = dockerUserDetailsService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (authentication instanceof CliAuthenticationToken) {
-            CliAuthenticationToken token = (CliAuthenticationToken) authentication;
-            if (token.getPrincipal().equals("user") && token.getCredentials().equals("pwd")
-                    && (new Scope("repository:test/hello-world:pull,push").contains(token.getRequiredScope()))) {
-                token.setAuthenticated(true);
-                return token;
+            CliAuthenticationToken given = (CliAuthenticationToken) authentication;
+            // load user
+            DockerAuth target = dockerUserDetailsService.loadUserDetails(
+                    given.getPrincipal().toString()
+            );
+            // check if user enabled and password matched
+            if (target.isEnabled() &&
+                    passwordEncoder.matches(given.getCredentials().toString(),
+                            target.getCpassword())) {
+                // check if user have enough permissions
+                if (dockerUserDetailsService.loadDockerAuthScope(target.getId(),
+                        given.getRequiredScope().getRepository()).contains(given.getRequiredScope())) {
+                    given.setAuthenticated(true);
+                    return given;
+                }
             }
         }
         return null;
