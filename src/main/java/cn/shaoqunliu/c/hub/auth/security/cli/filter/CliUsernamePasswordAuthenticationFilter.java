@@ -37,8 +37,9 @@ public class CliUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
             username = tokens[0];
             password = tokens[1];
         }
+        String scope = request.getParameter("scope");
         CliAuthenticationToken authRequest = new CliAuthenticationToken(
-                username, password, new Scope(request.getParameter("scope")));
+                username, password, scope == null ? null : new Scope(scope));
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 

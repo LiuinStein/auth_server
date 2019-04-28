@@ -1,5 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.po;
 
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,7 +16,7 @@ public class DockerRepositoryPermission {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "uid", referencedColumnName = "id")
-    private DockerAuth user;
+    private DockerAuthNonConfidential user;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rid", referencedColumnName = "id")
@@ -38,11 +40,11 @@ public class DockerRepositoryPermission {
         this.action = action;
     }
 
-    public DockerAuth getUser() {
+    public DockerAuthNonConfidential getUser() {
         return user;
     }
 
-    public void setUser(DockerAuth user) {
+    public void setUser(DockerAuthNonConfidential user) {
         this.user = user;
     }
 

@@ -29,16 +29,21 @@ public class CliAuthenticationProvider implements AuthenticationProvider {
             DockerAuth target = dockerUserDetailsService.loadUserDetails(
                     given.getPrincipal().toString()
             );
+            // target will not be null here due to if the input username not found
+            // the user details service will throw UsernameNotFoundException
             // check if user enabled and password matched
             if (target.isEnabled() &&
                     passwordEncoder.matches(given.getCredentials().toString(),
-                            target.getCpassword())) {
-                // check if user have enough permissions
-                if (dockerUserDetailsService.loadDockerAuthScope(target.getId(),
-                        given.getRequiredScope().getRepository()).contains(given.getRequiredScope())) {
-                    given.setAuthenticated(true);
-                    return given;
-                }
+                            target.getCpassword()) &&
+                    (given.getRequiredScope() == null ||
+                            // check if user have enough permissions
+                            dockerUserDetailsService.loadDockerAuthScope(target.getId(),
+                                    given.getRequiredScope().getRepository())
+                                    .contains(given.getRequiredScope()))
+
+            ) {
+                given.setAuthenticated(true);
+                return given;
             }
         }
         return null;

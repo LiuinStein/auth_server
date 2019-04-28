@@ -1,5 +1,6 @@
 package cn.shaoqunliu.c.hub.auth.security.cli.handler;
 
+import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 import cn.shaoqunliu.c.hub.auth.vo.DockerAccessDetails;
 import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationToken;
 import cn.shaoqunliu.c.hub.auth.security.common.JwtsUtils;
@@ -21,9 +22,10 @@ public class CliAuthenticationSuccessHandler implements AuthenticationSuccessHan
         response.setStatus(HttpServletResponse.SC_OK);
         List<DockerAccessDetails> access = new ArrayList<>();
         if (authentication instanceof CliAuthenticationToken) {
-            access.add(new DockerAccessDetails(
-                    ((CliAuthenticationToken) authentication).getRequiredScope())
-            );
+            Scope scope = ((CliAuthenticationToken) authentication).getRequiredScope();
+            if (scope != null) {
+                access.add(new DockerAccessDetails(scope));
+            }
         }
         String token = JwtsUtils.getBuilder()
                 .claim("access", access)

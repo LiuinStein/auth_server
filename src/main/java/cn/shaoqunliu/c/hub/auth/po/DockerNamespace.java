@@ -1,5 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.po;
 
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,7 +16,7 @@ public class DockerNamespace {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner", referencedColumnName = "id")
-    private DockerAuth owner;
+    private DockerAuthNonConfidential owner;
 
     public Integer getId() {
         return id;
@@ -32,11 +34,11 @@ public class DockerNamespace {
         this.name = name;
     }
 
-    public DockerAuth getOwner() {
+    public DockerAuthNonConfidential getOwner() {
         return owner;
     }
 
-    public void setOwner(DockerAuth owner) {
+    public void setOwner(DockerAuthNonConfidential owner) {
         this.owner = owner;
     }
 }

@@ -40,13 +40,16 @@ public final class Scope implements GrantedAuthority {
     private final String repository;
     private final Action action;
 
-    public Scope(String repository, Action action) {
+    public Scope(String repository, Action action) throws BadCredentialsException {
+        if (repository == null || action == null) {
+            throw new BadCredentialsException("Bad scope");
+        }
         this.repository = repository;
         this.action = action;
     }
 
     public Scope(String repository, int action) throws BadCredentialsException {
-        if (action < 0 || action > 3) {
+        if (repository == null || action < 0 || action > 3) {
             throw new BadCredentialsException("Bad scope");
         }
         this.repository = repository;
@@ -58,6 +61,9 @@ public final class Scope implements GrantedAuthority {
      *              the action part can only be "pull", "push", "pull,push" or nothing
      */
     public Scope(String scope) throws BadCredentialsException {
+        if (scope == null) {
+            throw new BadCredentialsException("Bad scope");
+        }
         String[] s = scope.split(":");
         if (s.length != 3 || !s[0].toLowerCase().equals("repository")) {
             throw new BadCredentialsException("Bad scope");

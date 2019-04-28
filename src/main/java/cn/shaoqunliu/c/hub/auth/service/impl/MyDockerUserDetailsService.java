@@ -6,6 +6,7 @@ import cn.shaoqunliu.c.hub.auth.jpa.ImagePermissionRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerAuth;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepositoryPermission;
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
 import cn.shaoqunliu.c.hub.auth.security.common.DockerImageIdentifier;
 import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 import cn.shaoqunliu.c.hub.auth.service.DockerUserDetailsService;
@@ -52,16 +53,17 @@ public class MyDockerUserDetailsService implements DockerUserDetailsService {
         }
         // not the owner
 //        Integer action = permissionRepository.getActionByImageIdentifier(uid, identifier.getNamespace(), identifier.getRepository());
-        DockerAuth user = new DockerAuth();
+        DockerAuthNonConfidential user = new DockerAuthNonConfidential();
         user.setId(uid);
         DockerRepositoryPermission permission = permissionRepository.getActionByUserAndRepository(user, dockerRepository);
+        Integer action = 0;
         if (permission != null) {
-            Integer action = permission.getAction();
-            if (action == null || action == Scope.Action.NULL.value()) {
-                action = dockerRepository.getOpened() ? Scope.Action.PULL.value() :
-                        Scope.Action.NULL.value();
-            }
+            action = permission.getAction();
         }
-        return new Scope(identifier.getFullRepositoryName(), 1);
+        if (action == 0 || action == Scope.Action.NULL.value()) {
+            action = dockerRepository.getOpened() ? Scope.Action.PULL.value() :
+                    Scope.Action.NULL.value();
+        }
+        return new Scope(identifier.getFullRepositoryName(), action);
     }
 }

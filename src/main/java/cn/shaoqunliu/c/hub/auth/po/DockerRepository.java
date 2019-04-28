@@ -1,5 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.po;
 
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
+
 import javax.persistence.*;
 
 @Entity
@@ -21,7 +23,7 @@ public class DockerRepository {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner", referencedColumnName = "id")
-    private DockerAuth owner;
+    private DockerAuthNonConfidential owner;
 
     private Boolean opened;
 
@@ -33,11 +35,11 @@ public class DockerRepository {
         this.opened = opened;
     }
 
-    public DockerAuth getOwner() {
+    public DockerAuthNonConfidential getOwner() {
         return owner;
     }
 
-    public void setOwner(DockerAuth owner) {
+    public void setOwner(DockerAuthNonConfidential owner) {
         this.owner = owner;
     }
 

@@ -1,11 +1,9 @@
 package cn.shaoqunliu.c.hub.auth.jpa;
 
-import cn.shaoqunliu.c.hub.auth.po.DockerAuth;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepositoryPermission;
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,5 +14,5 @@ public interface ImagePermissionRepository extends JpaRepository<DockerRepositor
 //                                       @Param("namespace") String namespace,
 //                                       @Param("repository") String repository);
 
-    DockerRepositoryPermission getActionByUserAndRepository(DockerAuth user, DockerRepository repository);
+    DockerRepositoryPermission getActionByUserAndRepository(DockerAuthNonConfidential user, DockerRepository repository);
 }
