@@ -19,7 +19,7 @@ public class DockerImage {
     private DockerRepository repository;
 
     private String name;
-    private Integer size;
+    private Long size;
     private Date created;
     private String sha256;
 
@@ -31,11 +31,11 @@ public class DockerImage {
         this.name = name;
     }
 
-    public Integer getSize() {
+    public Long getSize() {
         return size;
     }
 
-    public void setSize(Integer size) {
+    public void setSize(Long size) {
         this.size = size;
     }
 
