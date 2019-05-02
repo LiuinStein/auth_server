@@ -1,9 +1,11 @@
 package cn.shaoqunliu.c.hub.auth.service.impl;
 
+import cn.shaoqunliu.c.hub.auth.jpa.DockerNamespaceRepository;
 import cn.shaoqunliu.c.hub.auth.jpa.DockerRepositoryDetailsRepository;
 import cn.shaoqunliu.c.hub.auth.jpa.DockerUserDetailsRepository;
 import cn.shaoqunliu.c.hub.auth.jpa.ImagePermissionRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerAuth;
+import cn.shaoqunliu.c.hub.auth.po.DockerNamespace;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepositoryPermission;
 import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
@@ -19,12 +21,14 @@ import org.springframework.stereotype.Service;
 public class MyDockerUserDetailsService implements DockerUserDetailsService {
 
     private final DockerUserDetailsRepository userDetailsRepository;
+    private final DockerNamespaceRepository namespaceRepository;
     private final DockerRepositoryDetailsRepository repositoryDetailsRepository;
     private final ImagePermissionRepository permissionRepository;
 
     @Autowired
-    public MyDockerUserDetailsService(DockerUserDetailsRepository userDetailsRepository, DockerRepositoryDetailsRepository repositoryDetailsRepository, ImagePermissionRepository permissionRepository) {
+    public MyDockerUserDetailsService(DockerUserDetailsRepository userDetailsRepository, DockerNamespaceRepository namespaceRepository, DockerRepositoryDetailsRepository repositoryDetailsRepository, ImagePermissionRepository permissionRepository) {
         this.userDetailsRepository = userDetailsRepository;
+        this.namespaceRepository = namespaceRepository;
         this.repositoryDetailsRepository = repositoryDetailsRepository;
         this.permissionRepository = permissionRepository;
     }
@@ -44,7 +48,21 @@ public class MyDockerUserDetailsService implements DockerUserDetailsService {
         DockerRepository dockerRepository = repositoryDetailsRepository.getDockerRepositoryByIdentifier(identifier.getNamespace(), identifier.getRepository());
         // check if the repository exists
         if (dockerRepository == null) {
-            throw new BadCredentialsException("repository not found");
+            // if the operated repository not exists,
+            // once the user credentials is valid and the namespace corresponded exists
+            // we can grant the PUSH permission in order to allow the registry
+            // to receive and create such repository.
+            // when the docker client do a push operation, the scope within
+            // the authentication request is required both PUSH and PULL
+            // permission, so that we need to grant the BOTH permission here.
+            DockerNamespace namespace = namespaceRepository.getDockerNamespaceByName(identifier.getNamespace());
+            if (namespace != null && namespace.getOwner().getId() == uid) {
+                // namespace exists and belongs to the current requested user
+                // so we allow him to create a new repository within his namespace
+                return new Scope(repository, Scope.Action.BOTH);
+            }
+            // otherwise
+            throw new BadCredentialsException("namespace not found or not belongs to you");
         }
         // the owner of this repository or its namespace have full access
         if (uid == dockerRepository.getOwner().getId() ||
