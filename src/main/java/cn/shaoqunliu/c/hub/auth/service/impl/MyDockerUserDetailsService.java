@@ -9,13 +9,21 @@ import cn.shaoqunliu.c.hub.auth.po.DockerNamespace;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepository;
 import cn.shaoqunliu.c.hub.auth.po.DockerRepositoryPermission;
 import cn.shaoqunliu.c.hub.auth.po.projection.DockerAuthNonConfidential;
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerNamespaceWithoutOwner;
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerPermissionWithoutOwner;
+import cn.shaoqunliu.c.hub.auth.po.projection.DockerRepositoryWithoutOwner;
 import cn.shaoqunliu.c.hub.auth.security.common.DockerImageIdentifier;
 import cn.shaoqunliu.c.hub.auth.security.common.Scope;
 import cn.shaoqunliu.c.hub.auth.service.DockerUserDetailsService;
+import cn.shaoqunliu.c.hub.auth.vo.MgrAuthorities;
+import cn.shaoqunliu.c.hub.auth.vo.authority.Ownership;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service("myDockerUserDetailsService")
 public class MyDockerUserDetailsService implements DockerUserDetailsService {
@@ -35,7 +43,9 @@ public class MyDockerUserDetailsService implements DockerUserDetailsService {
 
     @Override
     public DockerAuth loadUserDetails(String username) throws UsernameNotFoundException {
-        DockerAuth result = userDetailsRepository.getDockerAuthByUsername(username);
+        DockerAuth result = username.contains("@") ?
+                userDetailsRepository.getDockerAuthByEmail(username) :
+                userDetailsRepository.getDockerAuthByUsername(username);
         if (result == null) {
             throw new UsernameNotFoundException("user not found");
         }
@@ -83,5 +93,58 @@ public class MyDockerUserDetailsService implements DockerUserDetailsService {
                     Scope.Action.NULL.value();
         }
         return new Scope(identifier.getFullRepositoryName(), action);
+    }
+
+    @Override
+    public MgrAuthorities loadMgrAuthorities(int uid) {
+        MgrAuthorities result = new MgrAuthorities();
+        Ownership ownership = new Ownership();
+        DockerAuthNonConfidential user = new DockerAuthNonConfidential();
+        user.setId(uid);
+        // get ownership of namespaces
+        List<String> namespace = new ArrayList<>();
+        List<DockerNamespaceWithoutOwner> namespaceWithoutOwners =
+                namespaceRepository.getDockerNamespacesByOwner(user);
+        if (namespaceWithoutOwners != null && namespaceWithoutOwners.size() > 0) {
+            namespaceWithoutOwners.forEach(x -> namespace.add(x.getName()));
+        }
+        ownership.setNamespace(namespace);
+        // get ownership of repositories
+        List<String> repository = new ArrayList<>();
+        List<DockerRepositoryWithoutOwner> repositoryWithoutNamespaceAndOwners =
+                repositoryDetailsRepository.getDockerRepositoriesByOwner(user);
+        if (repositoryWithoutNamespaceAndOwners != null &&
+                repositoryWithoutNamespaceAndOwners.size() > 0) {
+            repositoryWithoutNamespaceAndOwners.forEach(
+                    x -> repository.add(x.getNamespace().getName() + "/" + x.getName()));
+        }
+        ownership.setRepository(repository);
+        // get user permissions of other repositories
+        List<DockerPermissionWithoutOwner> permissionWithoutOwners =
+                permissionRepository.getDockerRepositoryPermissionsByUser(user);
+        List<String> readOnly = new ArrayList<>();
+        List<String> writable = new ArrayList<>();
+        if (permissionWithoutOwners != null &&
+                permissionWithoutOwners.size() > 0) {
+            permissionWithoutOwners.forEach(x -> {
+                String identifier = x.getRepository().getNamespace().getName()
+                        + "/" + x.getRepository().getName();
+                switch (Scope.Action.valueOf(x.getAction())) {
+                    case PULL:
+                        // get read-only
+                        readOnly.add(identifier);
+                        break;
+                    case PUSH:
+                    case BOTH:
+                        writable.add(identifier);
+                        break;
+                }
+            });
+        }
+        // set result
+        result.setOwnership(ownership);
+        result.setReadOnly(readOnly);
+        result.setWritable(writable);
+        return result;
     }
 }

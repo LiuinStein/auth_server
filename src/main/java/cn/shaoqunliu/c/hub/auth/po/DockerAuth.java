@@ -6,7 +6,8 @@ import javax.persistence.*;
 @Entity
 @Table(name = "docker_auth", indexes = {
         @Index(name = "idx_auth_username", columnList = "username"),
-        @Index(columnList = "username", unique = true)
+        @Index(columnList = "username", unique = true),
+        @Index(columnList = "email", unique = true)
 })
 public class DockerAuth {
 
@@ -14,6 +15,7 @@ public class DockerAuth {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String username;
+    private String email;
     private String mpassword;
     private String cpassword;
     private Boolean enabled;
@@ -56,5 +58,13 @@ public class DockerAuth {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

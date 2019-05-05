@@ -1,14 +1,19 @@
 package cn.shaoqunliu.c.hub.auth.configuration;
 
+import cn.shaoqunliu.c.hub.auth.security.cli.CliAuthenticationProvider;
 import cn.shaoqunliu.c.hub.auth.security.cli.filter.CliUsernamePasswordAuthenticationFilter;
 import cn.shaoqunliu.c.hub.auth.security.cli.handler.CliAuthenticationFailureHandler;
 import cn.shaoqunliu.c.hub.auth.security.cli.handler.CliAuthenticationSuccessHandler;
+import cn.shaoqunliu.c.hub.auth.security.mgr.MgrFirstAuthenticationProvider;
+import cn.shaoqunliu.c.hub.auth.security.mgr.filter.MgrUsernamePasswordAuthenticationFilter;
+import cn.shaoqunliu.c.hub.auth.security.mgr.handler.MgrAuthenticationFailureHandler;
+import cn.shaoqunliu.c.hub.auth.security.mgr.handler.MgrAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +22,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @EnableWebSecurity
 public class MultiHttpSecurityConfig {
@@ -36,29 +44,37 @@ public class MultiHttpSecurityConfig {
         private final AuthenticationProvider cliAuthenticationProvider;
 
         @Autowired
-        public DockerRegistryAuthSecurityConfiguration(AuthenticationProvider cliAuthenticationProvider) {
+        public DockerRegistryAuthSecurityConfiguration(CliAuthenticationProvider cliAuthenticationProvider) {
             this.cliAuthenticationProvider = cliAuthenticationProvider;
         }
 
         @Override
-        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-            super.configure(auth);
-            auth.authenticationProvider(cliAuthenticationProvider);
+        public ProviderManager authenticationManager() {
+            return new ProviderManager(Collections.singletonList(
+                    cliAuthenticationProvider
+            ));
         }
+
+//        @Override
+//        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//            super.configure(auth);
+//            auth.authenticationProvider(cliAuthenticationProvider);
+//        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/v1/auth/token**")
+            http.antMatcher("/v1/auth/docker/token**")
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                     .and()
                     .authorizeRequests()
-                    .antMatchers("/v1/auth/token").authenticated()
+                    .antMatchers("/v1/auth/docker/token").authenticated()
                     .and()
                     .addFilterAt(new CliUsernamePasswordAuthenticationFilter(
                                     authenticationManager(),
-                                    "/v1/auth/token",
-                                    new CliAuthenticationSuccessHandler(), new CliAuthenticationFailureHandler()),
+                                    "/v1/auth/docker/token",
+                                    new CliAuthenticationSuccessHandler(),
+                                    new CliAuthenticationFailureHandler()),
                             UsernamePasswordAuthenticationFilter.class);
         }
     }
@@ -67,14 +83,41 @@ public class MultiHttpSecurityConfig {
     @Order(2)
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
+        private final AuthenticationProvider mgrFirstAuthenticationProvider;
+
+        @Autowired
+        public FormLoginWebSecurityConfigurerAdapter(MgrFirstAuthenticationProvider mgrFirstAuthenticationProvider) {
+            this.mgrFirstAuthenticationProvider = mgrFirstAuthenticationProvider;
+        }
+
+        @Override
+        public ProviderManager authenticationManager() {
+            return new ProviderManager(Collections.singletonList(
+                    mgrFirstAuthenticationProvider
+            ));
+        }
+//        @Override
+//        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//            super.configure(auth);
+//            auth.authenticationProvider(mgrFirstAuthenticationProvider);
+//        }
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/v1/auth/login**")
+            http.csrf().disable() // prevent post request from 403 forbidden by CSRF policies
+                    .antMatcher("/v1/auth/mgr/token**")
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                     .and()
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/v1/auth/login").permitAll();
+                    .antMatchers("/v1/auth/mgr/token").authenticated()
+                    .and()
+                    .addFilterAt(new MgrUsernamePasswordAuthenticationFilter(
+                                    authenticationManager(),
+                                    "/v1/auth/mgr/token",
+                                    new MgrAuthenticationSuccessHandler(),
+                                    new MgrAuthenticationFailureHandler()),
+                            UsernamePasswordAuthenticationFilter.class);
         }
     }
 

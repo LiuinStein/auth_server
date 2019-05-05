@@ -1,9 +1,6 @@
 package cn.shaoqunliu.c.hub.auth.security.common;
 
-import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,6 +44,23 @@ public class JwtsUtils {
                 .setExpiration(new Date(issuedAt.getTime() + 48 * 3600 * 1000))
                 .setIssuedAt(issuedAt)
                 .setId(UUID.randomUUID().toString());
+    }
+
+    public static JwtParser getParser() {
+        return Jwts.parser()
+                .setSigningKey(x5cCertificate)
+                .requireIssuer("A certain powerful developer surnamed Liu")
+                .requireAudience("A docker registry developed by a sane developer - Shaoqun Liu");
+    }
+
+    public static Claims getClaimsFromToken(String token) {
+        Claims claims;
+        try {
+            claims = getParser().parseClaimsJws(token).getBody();
+        } catch (Exception e) {
+            claims = null;
+        }
+        return claims;
     }
 
     private static byte[] getByteArrayFromFile(String path) throws IOException {

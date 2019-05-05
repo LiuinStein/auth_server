@@ -6,5 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DockerUserDetailsRepository extends JpaRepository<DockerAuth, Integer> {
+
     DockerAuth getDockerAuthByUsername(String username);
+
+    DockerAuth getDockerAuthByEmail(String email);
 }
