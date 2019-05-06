@@ -66,4 +66,8 @@ public class DockerRepository {
     public void setNamespace(DockerNamespace namespace) {
         this.namespace = namespace;
     }
+
+    public String retrieveIdentifier() {
+        return getNamespace().getName() + "/" + getName();
+    }
 }

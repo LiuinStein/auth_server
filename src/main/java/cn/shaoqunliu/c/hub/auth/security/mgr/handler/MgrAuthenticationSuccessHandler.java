@@ -1,7 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.security.mgr.handler;
 
 import cn.shaoqunliu.c.hub.auth.security.common.JwtsUtils;
-import cn.shaoqunliu.c.hub.auth.security.mgr.MgrFirstAuthenticationToken;
+import cn.shaoqunliu.c.hub.auth.security.mgr.token.MgrAbstractAuthenticationToken;
 import cn.shaoqunliu.c.hub.auth.vo.MgrAccessDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -18,8 +18,8 @@ public class MgrAuthenticationSuccessHandler implements AuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
         MgrAccessDetails accessDetails = null;
-        if (authentication instanceof MgrFirstAuthenticationToken) {
-            accessDetails = ((MgrFirstAuthenticationToken) authentication).getAccessDetails();
+        if (authentication instanceof MgrAbstractAuthenticationToken) {
+            accessDetails = ((MgrAbstractAuthenticationToken) authentication).getAccessDetails();
         }
         String token = JwtsUtils.getBuilder()
                 .claim("access", accessDetails)

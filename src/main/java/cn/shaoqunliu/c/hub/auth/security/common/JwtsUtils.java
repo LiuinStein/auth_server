@@ -48,19 +48,21 @@ public class JwtsUtils {
 
     public static JwtParser getParser() {
         return Jwts.parser()
-                .setSigningKey(x5cCertificate)
+                .setSigningKey(privateKey)
                 .requireIssuer("A certain powerful developer surnamed Liu")
                 .requireAudience("A docker registry developed by a sane developer - Shaoqun Liu");
     }
 
     public static Claims getClaimsFromToken(String token) {
-        Claims claims;
         try {
-            claims = getParser().parseClaimsJws(token).getBody();
-        } catch (Exception e) {
-            claims = null;
+            Jws<Claims> parser = getParser().parseClaimsJws(token);
+            return parser.getBody();
+        } catch (JwtException e) {
+            // the parseClaimsJws method will check if the Jwts valid automatically,
+            // and throw some exceptions subclassed JwtException when invalid Jwts was given
+            // such as SignatureException and ExpiredJwtException
+            return null;
         }
-        return claims;
     }
 
     private static byte[] getByteArrayFromFile(String path) throws IOException {

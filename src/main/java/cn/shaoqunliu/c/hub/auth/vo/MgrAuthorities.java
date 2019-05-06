@@ -33,4 +33,16 @@ public class MgrAuthorities {
     public void setWritable(List<String> writable) {
         this.writable = writable;
     }
+
+    public void addReadOnly(String repository) {
+        if (!readOnly.contains(repository)) {
+            readOnly.add(repository);
+        }
+    }
+
+    public void addWritable(String repository) {
+        if (!writable.contains(repository)) {
+            writable.add(repository);
+        }
+    }
 }

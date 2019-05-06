@@ -5,6 +5,7 @@ import cn.shaoqunliu.c.hub.auth.security.cli.filter.CliUsernamePasswordAuthentic
 import cn.shaoqunliu.c.hub.auth.security.cli.handler.CliAuthenticationFailureHandler;
 import cn.shaoqunliu.c.hub.auth.security.cli.handler.CliAuthenticationSuccessHandler;
 import cn.shaoqunliu.c.hub.auth.security.mgr.MgrFirstAuthenticationProvider;
+import cn.shaoqunliu.c.hub.auth.security.mgr.MgrSecondAuthenticationProvider;
 import cn.shaoqunliu.c.hub.auth.security.mgr.filter.MgrUsernamePasswordAuthenticationFilter;
 import cn.shaoqunliu.c.hub.auth.security.mgr.handler.MgrAuthenticationFailureHandler;
 import cn.shaoqunliu.c.hub.auth.security.mgr.handler.MgrAuthenticationSuccessHandler;
@@ -14,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -55,6 +55,9 @@ public class MultiHttpSecurityConfig {
             ));
         }
 
+        // with this solution of adding authentication provider
+        // the authenticationManager() method of super class
+        // may returns null with unknown reasons
 //        @Override
 //        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //            super.configure(auth);
@@ -84,23 +87,21 @@ public class MultiHttpSecurityConfig {
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
         private final AuthenticationProvider mgrFirstAuthenticationProvider;
+        private final AuthenticationProvider mgrSecondAuthenticationProvider;
 
         @Autowired
-        public FormLoginWebSecurityConfigurerAdapter(MgrFirstAuthenticationProvider mgrFirstAuthenticationProvider) {
+        public FormLoginWebSecurityConfigurerAdapter(MgrFirstAuthenticationProvider mgrFirstAuthenticationProvider, MgrSecondAuthenticationProvider mgrSecondAuthenticationProvider) {
             this.mgrFirstAuthenticationProvider = mgrFirstAuthenticationProvider;
+            this.mgrSecondAuthenticationProvider = mgrSecondAuthenticationProvider;
         }
 
         @Override
         public ProviderManager authenticationManager() {
-            return new ProviderManager(Collections.singletonList(
-                    mgrFirstAuthenticationProvider
+            return new ProviderManager(Arrays.asList(
+                    mgrFirstAuthenticationProvider,
+                    mgrSecondAuthenticationProvider
             ));
         }
-//        @Override
-//        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//            super.configure(auth);
-//            auth.authenticationProvider(mgrFirstAuthenticationProvider);
-//        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

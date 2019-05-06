@@ -1,6 +1,7 @@
 package cn.shaoqunliu.c.hub.auth.security.mgr;
 
 import cn.shaoqunliu.c.hub.auth.po.DockerAuth;
+import cn.shaoqunliu.c.hub.auth.security.mgr.token.MgrFirstAuthenticationToken;
 import cn.shaoqunliu.c.hub.auth.service.DockerUserDetailsService;
 import cn.shaoqunliu.c.hub.auth.vo.MgrAccessDetails;
 import org.springframework.beans.factory.annotation.Autowired;
