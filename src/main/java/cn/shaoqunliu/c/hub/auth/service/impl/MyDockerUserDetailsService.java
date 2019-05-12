@@ -127,6 +127,17 @@ public class MyDockerUserDetailsService implements DockerUserDetailsService {
         if (permissionWithoutOwners != null &&
                 permissionWithoutOwners.size() > 0) {
             permissionWithoutOwners.forEach(x -> {
+                if (x.getRepository() == null ||
+                        x.getRepository().getNamespace() == null) {
+                    // goes here when the database integrity got damaged
+                    // and should TODO: Logging for the future improvement
+                    // here we ignore the situation of bad database integrity,
+                    // but for the future, we need to log details here
+                    // and fix the data manually,
+                    // but normally without destroy it directly through database
+                    // intentionally, this problems may never be caused.
+                    return;
+                }
                 String identifier = x.getRepository().getNamespace().getName()
                         + "/" + x.getRepository().getName();
                 switch (Scope.Action.valueOf(x.getAction())) {
